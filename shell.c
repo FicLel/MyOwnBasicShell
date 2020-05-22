@@ -5,6 +5,8 @@
 #include <string.h>
 #include <dirent.h>
 #include <limits.h>
+#include <time.h>
+#include <pwd.h>
 
 //This is the string lentgh we'll admit
 #define BUFFERSIZE 200
@@ -20,6 +22,8 @@ char *getcwd(char *buf, size_t size);
 
 char *ourPath;
 
+void lsCommand(char const *);
+
 int main(){
 
   
@@ -28,7 +32,7 @@ int main(){
   ourPath = getcwd(NULL,0);
   //char *token;
   //token = strtok(initialString," ");
-  char *prompt = "[VEML] V 0.1.6:~";
+  char *prompt = "[VEML] V 0.2.1:~";
   char *a = ">";
   while(1){
    if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -61,6 +65,9 @@ void menu(char *menu){
     cdCommand(getOptions);
     
     //printf("%s siguiente",getOptions);
+  }
+  else if(hasAPrefix(getOptions,"ls") == 0){
+    lsCommand(ourPath);
   }
   else{
     puts("Instruccion no encontrada");
@@ -117,6 +124,30 @@ void cdCommand(char const *thisToken){
   }
   else{
     puts("\nDirectorio no encontrado amiguito\n");
+  }
+  
+}
+
+void lsCommand(char const *pathName){
+  //We have to use a structure to get the folder files
+  struct dirent* currentDirectory;
+  struct stat myStat;
+  struct tm lt;
+  struct passwd *pwd; //USER
+  
+  DIR* directory = opendir(pathName);
+ 
+  if(directory != NULL){
+   while((currentDirectory = readdir(directory))){
+    //puts(currentDirectory->d_name);
+    //With ls 
+    if (currentDirectory->d_name[0] != '.' && currentDirectory->d_name[strlen(currentDirectory->d_name)-1] != '~') {
+      puts(currentDirectory->d_name);
+    }
+   }
+  }
+  else{
+    puts("Error en la lectura");
   }
   
 }

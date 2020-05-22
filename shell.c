@@ -24,6 +24,8 @@ char *ourPath;
 
 void lsCommand(char const *);
 
+void clearCommand();
+
 int main(){
 
   
@@ -32,11 +34,11 @@ int main(){
   ourPath = getcwd(NULL,0);
   //char *token;
   //token = strtok(initialString," ");
-  char *prompt = "[VEML] V 0.2.1:~";
+  char *prompt = "[VEML] V 0.3.0:~";
   char *a = ">";
   while(1){
    if (getcwd(cwd, sizeof(cwd)) != NULL) {
-    printf("\n%s %s %s",prompt,ourPath,a);
+    printf("\n%s%s %s",prompt,ourPath,a);
   }
   //We send variable and to save, size and protocol?
    fgets(initialString,BUFFERSIZE,stdin);
@@ -68,6 +70,9 @@ void menu(char *menu){
   }
   else if(hasAPrefix(getOptions,"ls") == 0){
     lsCommand(ourPath);
+  }
+  else if(hasAPrefix(getOptions,"clear") == 0){
+    clearCommand();
   }
   else{
     puts("Instruccion no encontrada");
@@ -147,7 +152,17 @@ void lsCommand(char const *pathName){
    }
   }
   else{
-    puts("Error en la lectura");
+    perror("Error en la lectura");
   }
   
+}
+//Clear command
+void clearCommand(){
+  int i = 0;
+  //In place to use \n to print blank space we use a Regex
+  for(i=0;i<100;){
+    printf("\e[1;1H\e[2J");
+    i+=1;
+  }
+
 }

@@ -7,6 +7,8 @@
 #include <limits.h>
 #include <time.h>
 #include <pwd.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 //This is the string lentgh we'll admit
 #define BUFFERSIZE 200
@@ -24,7 +26,11 @@ char *ourPath;
 
 void lsCommand(char const *);
 
+void createDirectoryCommand(char *);
+
 void clearCommand();
+
+char *preproccessString(char *);
 
 int main(){
 
@@ -34,7 +40,7 @@ int main(){
   ourPath = getcwd(NULL,0);
   //char *token;
   //token = strtok(initialString," ");
-  char *prompt = "[VEML] V 0.3.0:~";
+  char *prompt = "[VEML] V 0.4.0:~";
   char *a = ">";
   while(1){
    if (getcwd(cwd, sizeof(cwd)) != NULL) {
@@ -66,14 +72,20 @@ void menu(char *menu){
     getOptions = strtok(NULL," ");
     cdCommand(getOptions);
     
-    //printf("%s siguiente",getOptions);
   }
+  else if(hasAPrefix(getOptions,"mkdir") == 0){
+    getOptions = strtok(NULL," ");
+    createDirectoryCommand(getOptions);
+    
+  }
+
   else if(hasAPrefix(getOptions,"ls") == 0){
     lsCommand(ourPath);
   }
   else if(hasAPrefix(getOptions,"clear") == 0){
     clearCommand();
   }
+  
   else{
     puts("Instruccion no encontrada");
   }
@@ -94,7 +106,7 @@ void cdCommand(char const *thisToken){
   //ourPath = "CAMBIAMOS PERROS";    
 //  thisToken = strtok(NULL," ")
   if(thisToken == NULL){
-    printf("hey man");
+    perror("FALLO EN INSTRUCCION INEXPERADO");
   }
 
   printf("%s",thisToken);
@@ -147,7 +159,7 @@ void lsCommand(char const *pathName){
     //puts(currentDirectory->d_name);
     //With ls 
     if (currentDirectory->d_name[0] != '.' && currentDirectory->d_name[strlen(currentDirectory->d_name)-1] != '~') {
-      puts(currentDirectory->d_name);
+      printf("%s ",currentDirectory->d_name);
     }
    }
   }
@@ -164,5 +176,48 @@ void clearCommand(){
     printf("\e[1;1H\e[2J");
     i+=1;
   }
-
 }
+void createDirectoryCommand(char *directoryName){
+   char tempPath[BUFFERSIZE];
+   strcpy(tempPath, ourPath);
+   struct stat st = {0};
+   strcat(tempPath,directoryName);
+  char *result = preproccessString(directoryName);
+   if (stat(tempPath, &st) == -1) {
+      
+     mkdir(result, 0700);
+     free(result);
+    }else{
+      perror("No se puede crear el directorio");
+    }
+}
+
+char *preproccessString(char *str) {
+    // Create a new string of the size of the input string, so this might be bigger than needed but should never be too small
+      char *result = malloc(sizeof(str));
+      // Array of allowed chars with a 0 on the end to know when the end of the array is reached, I don't know if there is a more elegant way to do this
+      // Changed from array to string for sake of simplicity
+      char *allowedCharsArray = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+      // Initalize two integers
+      // i will be increased for every char in the string
+      int i = 0;
+      // j will be increased every time a new char is added to the result
+      int j = 0;
+      // Loop over the input string
+      while (str[i] != '\0') {
+        // l will be increased for every char in the allowed chars array
+        int l = 0;
+        // Loop over the chars in the allowed chars array
+        while (allowedCharsArray[l] != '\0') {
+          // If the char (From the input string) currently under consideration (index i) is present in the allowed chars array
+            if (allowedCharsArray[l] == (str[i])) {
+              // Set char at index j of result string of char currently under consideration
+              result[j] = (str[i]);
+              j++;
+            }
+            l++;
+        }
+        i++;
+      }
+    return result;
+  }
